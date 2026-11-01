@@ -218,3 +218,41 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ==========================================================
+# miniOPs specific
+# ==========================================================
+
+# Environment files (template above ignores only .env)
+.env.*
+!.env.example
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# miniOPs runtime state (examples, local testing)
+.miniops/
+mlruns/
+
+# Local data and model artifacts
+*.parquet
+*.arrow
+*.feather
+*.joblib
+*.pkl
+*.skops
+*.pt
+*.onnx
+# Small fixtures used by tests are allowed
+!tests/fixtures/**
+
+# Secrets and credentials (e.g. GCP service account keys)
+*.pem
+*.key
+*credentials*.json
+*service-account*.json
+gcp-key*.json
