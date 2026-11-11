@@ -13,3 +13,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Development tooling: uv project built with `uv_build`, ruff, mypy in strict mode, pytest with a coverage threshold of 85% and pre-commit hooks.
 - Contributing guide with the development setup, and a pull request template.
 - Continuous integration on GitHub Actions: pre-commit checks, tests on Linux, macOS and Windows with Python 3.12 to 3.14, a package build and a pull request title check. Dependabot keeps dependencies, actions and pre-commit hooks up to date.
+- Release workflow: pushing a version tag builds the package and publishes it to PyPI through Trusted Publishing, with provenance attestations, and then creates the GitHub release.
