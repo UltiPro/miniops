@@ -53,7 +53,7 @@ miniOPs starts where data engineering ends. It does **not** ingest, clean, join 
 | Target | Training | Serving | State |
 |---|---|---|---|
 | `local` | subprocess in the model's venv | local FastAPI (uvicorn) | SQLite + filesystem |
-| `docker` | container | container | SQLite + filesystem (mounted) |
+| `docker` | container | container | same as `local` |
 | `gcp` | Vertex AI custom training | Cloud Run | GCS + miniOPs metadata on GCP |
 
 `local` and `docker` share the same state, so a model trained locally can be served in Docker right away. Moving a version to GCP (or back) is a single `miniops migrate`.
