@@ -1,0 +1,109 @@
+[project]
+name = "miniops-ml"
+version = "0.1.0.dev0"
+description = "Lightweight, polars-native MLOps CLI for training, versioning and deploying models locally, in Docker or on Google Cloud."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.12"
+authors = [{ name = "Patryk Wójtowicz" }]
+keywords = [
+  "mlops",
+  "machine-learning",
+  "model-registry",
+  "polars",
+  "scikit-learn",
+  "lightgbm",
+  "pytorch",
+  "fastapi",
+  "gcp",
+  "cli",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
+dependencies = [
+  "typer>=0.27",
+]
+
+[project.urls]
+Homepage = "https://github.com/UltiPro/miniops"
+Repository = "https://github.com/UltiPro/miniops"
+Issues = "https://github.com/UltiPro/miniops/issues"
+Changelog = "https://github.com/UltiPro/miniops/blob/main/CHANGELOG.md"
+
+[project.scripts]
+miniops = "miniops.cli:app"
+
+[dependency-groups]
+dev = [
+  "mypy>=2.4",
+  "pre-commit>=4.7",
+  "pytest>=9.2",
+  "pytest-cov>=7.1",
+  "ruff>=0.17",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# We publish as "miniops-ml", but you import "miniops".
+module-name = "miniops"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# What each code means: https://docs.astral.sh/ruff/rules/
+# PTH keeps us on pathlib, which saves a lot of trouble on Windows.
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "C4", "N", "RUF", "PTH", "D"]
+# Module docstrings are optional: write one only when it says
+# more than the file name does.
+ignore = ["D100", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+addopts = "--import-mode=importlib --strict-markers --strict-config --cov --cov-report=term-missing"
+xfail_strict = true
+
+[tool.coverage.run]
+source = ["miniops"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]

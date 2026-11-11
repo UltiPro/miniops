@@ -89,7 +89,7 @@ miniops migrate churn --version 1.0.0 --to gcp     # copy to the team's GCP stor
 
 ## Contributing
 
-The project is at an early stage, so the best way to help right now is to open an issue with ideas, use cases or feedback on the design, or start a thread in [Discussions](https://github.com/UltiPro/miniops/discussions).
+The project is at an early stage, so the best way to help right now is to open an issue with ideas, use cases or feedback on the design, or start a thread in [Discussions](https://github.com/UltiPro/miniops/discussions). For the development setup and guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
