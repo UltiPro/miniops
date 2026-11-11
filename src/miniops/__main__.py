@@ -1,4 +1,4 @@
-from miniops.cli import app
+from miniops.cli import main
 
 if __name__ == "__main__":
-    app(prog_name="miniops")
+    main()

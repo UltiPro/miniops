@@ -4,12 +4,16 @@ from typing import Annotated
 import typer
 
 from miniops import __version__
+from miniops.cli.config import config_app
+from miniops.cli.init import init
 
 app = typer.Typer(
     name="miniops",
     help="Lightweight, polars-native MLOps CLI.",
     no_args_is_help=True,
 )
+app.command("init")(init)
+app.add_typer(config_app, name="config")
 
 
 def _print_version(value: bool) -> None:

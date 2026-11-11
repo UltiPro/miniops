@@ -15,12 +15,13 @@ def test_version_option_prints_short_version() -> None:
     assert result.stdout.strip() == f"miniops {__version__}"
 
 
-def test_help_lists_the_version_command() -> None:
+def test_help_lists_the_commands() -> None:
     result = runner.invoke(app, ["--help"])
 
     assert result.exit_code == 0
     assert "Usage" in result.stdout
-    assert "version" in result.stdout
+    for command in ("init", "config", "version"):
+        assert f" {command} " in result.stdout
 
 
 def test_no_arguments_shows_help() -> None:
