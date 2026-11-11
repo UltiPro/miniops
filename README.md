@@ -3,12 +3,12 @@
 > Lightweight, polars-native MLOps CLI for training, versioning and deploying models locally, in Docker or on Google Cloud.
 
 [![CI](https://github.com/UltiPro/miniops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/UltiPro/miniops/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/miniops-ml.svg)](https://pypi.org/project/miniops-ml/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/UltiPro/miniops/blob/main/LICENSE)
 ![Status](https://img.shields.io/badge/status-pre--alpha-orange.svg)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)
 
-> [!WARNING]
-> miniOPs is in the **design phase**. There is no usable release yet. The commands shown below describe the planned interface and may change.
+> **Status: pre-alpha.** The current release contains only the command line skeleton (`miniops --version` and `miniops version`). The features and commands described below are the planned interface and may change.
 
 ## Why miniOPs?
 
@@ -90,8 +90,8 @@ miniops migrate churn --version 1.0.0 --to gcp     # copy to the team's GCP stor
 
 ## Contributing
 
-The project is at an early stage, so the best way to help right now is to open an issue with ideas, use cases or feedback on the design, or start a thread in [Discussions](https://github.com/UltiPro/miniops/discussions). For the development setup and guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+The project is at an early stage, so the best way to help right now is to open an issue with ideas, use cases or feedback on the design, or start a thread in [Discussions](https://github.com/UltiPro/miniops/discussions). For the development setup and guidelines, see [CONTRIBUTING.md](https://github.com/UltiPro/miniops/blob/main/CONTRIBUTING.md).
 
 ## License
 
-miniOPs is licensed under the [Apache License 2.0](LICENSE).
+miniOPs is licensed under the [Apache License 2.0](https://github.com/UltiPro/miniops/blob/main/LICENSE).

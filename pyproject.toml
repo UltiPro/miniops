@@ -1,6 +1,6 @@
 [project]
 name = "miniops-ml"
-version = "0.1.0.dev0"
+version = "0.1.0a1"
 description = "Lightweight, polars-native MLOps CLI for training, versioning and deploying models locally, in Docker or on Google Cloud."
 readme = "README.md"
 license = "Apache-2.0"
