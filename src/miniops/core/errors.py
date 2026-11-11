@@ -16,3 +16,7 @@ class NotFoundError(MiniopsError):
 
 class IntegrityError(MiniopsError):
     """Stored content does not match the digest recorded for it."""
+
+
+class IncompatibleStoreError(MiniopsError):
+    """The store was written by a newer miniOPs than the one that opened it."""

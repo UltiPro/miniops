@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Core domain model: models, versions with semantic version numbers, runs and aliases, with the rules for releasing, renumbering and deleting a version.
 - Interfaces (ports) for the metadata store and the artifact store, and provisional ones for the executor, the serving backend and the image registry.
+- Local metadata store in SQLite, the first implementation of the metadata port. Its schema is versioned and upgrades itself when a store is opened, after making a backup.
 
 ## [0.1.0a1] - 2026-11-11
 
