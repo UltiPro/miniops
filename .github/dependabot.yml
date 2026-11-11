@@ -1,0 +1,43 @@
+version: 2
+
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    # Keep the version ranges in pyproject.toml unless a new release falls outside them.
+    versioning-strategy: increase-if-necessary
+    # Give a new release a week to show its problems before we take it.
+    cooldown:
+      default-days: 7
+    groups:
+      # Runtime dependencies stay out of the group: they reach users,
+      # so each one gets its own pull request.
+      dev-tools:
+        patterns: [mypy, pre-commit, pytest, pytest-cov, ruff]
+    commit-message:
+      prefix: build
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+      include: scope
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+      include: scope

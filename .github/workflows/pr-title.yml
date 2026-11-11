@@ -1,0 +1,26 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check that the title follows Conventional Commits
+        env:
+          # Anyone can open a pull request and choose its title, so it is read
+          # from the environment and never pasted into the script.
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9-]+\))?!?: .+'
+          echo "Title: $TITLE"
+          if [[ ! "$TITLE" =~ $pattern ]]; then
+            echo "::error::The title must follow Conventional Commits, for example: feat(registry): add bump command"
+            exit 1
+          fi
