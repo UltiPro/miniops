@@ -47,6 +47,7 @@ Write comments the way you would explain something to a colleague: in plain, nat
 - Add or update tests and documentation together with the code, and add an entry to `CHANGELOG.md` under "Unreleased".
 - Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and PR titles, for example `feat(registry): add version bump command` or `fix(cli): handle missing config file`.
 - Pull requests are squash-merged, so the PR title becomes the commit message on `main`.
+- CI runs the pre-commit checks, the tests on Linux, macOS and Windows with every supported Python version, and a package build. All of it has to pass before a pull request is merged.
 
 ## Reporting security issues
 

@@ -2,6 +2,7 @@
 
 > Lightweight, polars-native MLOps CLI for training, versioning and deploying models locally, in Docker or on Google Cloud.
 
+[![CI](https://github.com/UltiPro/miniops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/UltiPro/miniops/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-pre--alpha-orange.svg)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)
