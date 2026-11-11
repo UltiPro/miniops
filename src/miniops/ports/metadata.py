@@ -27,9 +27,11 @@ class MetadataStore(Protocol):
         """Return all models, ordered by name."""
 
     def add_version(self, version: ModelVersion) -> None:
-        """Add a version to its model.
+        """Add a draft to its model. A version is released later, with ``update_version``.
 
         Raises:
+            InvalidStateError: If the version is not a draft.
+            NotFoundError: If the store does not have its model.
             AlreadyExistsError: If the model has this number already, even as a deleted version.
         """
 
@@ -37,8 +39,19 @@ class MetadataStore(Protocol):
         """Replace the stored version that has the same id.
 
         Raises:
-            NotFoundError: If the store has no version with this id.
+            NotFoundError: If the store has no version with this id, or the released run
+                is not one of its runs.
             AlreadyExistsError: If another version of the model has the new number.
+        """
+
+    def delete_version(self, version_id: UUID) -> None:
+        """Remove a draft with its runs, which frees its number.
+
+        A released version is never removed: it is deleted by storing its tombstone.
+
+        Raises:
+            NotFoundError: If the store has no version with this id.
+            InvalidStateError: If the version is not a draft.
         """
 
     def get_version(self, model_id: UUID, number: SemVer) -> ModelVersion | None:
@@ -51,6 +64,7 @@ class MetadataStore(Protocol):
         """Add a run to its version.
 
         Raises:
+            NotFoundError: If the store does not have its version or its parent run.
             AlreadyExistsError: If the store has a run with this id.
         """
 
@@ -58,7 +72,8 @@ class MetadataStore(Protocol):
         """Replace the stored run that has the same id.
 
         Raises:
-            NotFoundError: If the store has no run with this id.
+            NotFoundError: If the store has no run with this id, or does not have its version
+                or its parent run.
         """
 
     def get_run(self, run_id: UUID) -> Run | None:
@@ -68,7 +83,18 @@ class MetadataStore(Protocol):
         """Return the runs of a version, oldest first."""
 
     def set_alias(self, alias: Alias) -> None:
-        """Create the alias, or move it when the model already has one with this name."""
+        """Create the alias, or move it when the model already has one with this name.
+
+        Raises:
+            NotFoundError: If the model has no version with this id.
+        """
+
+    def delete_alias(self, model_id: UUID, name: str) -> None:
+        """Remove an alias of a model.
+
+        Raises:
+            NotFoundError: If the model has no alias with this name.
+        """
 
     def get_alias(self, model_id: UUID, name: str) -> Alias | None:
         """Return the alias of a model with this name, or None."""
