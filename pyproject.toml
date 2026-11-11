@@ -70,9 +70,9 @@ line-length = 100
 # What each code means: https://docs.astral.sh/ruff/rules/
 # PTH keeps us on pathlib, which saves a lot of trouble on Windows.
 select = ["E", "W", "F", "I", "B", "UP", "SIM", "C4", "N", "RUF", "PTH", "D"]
-# Module docstrings are optional: write one only when it says
-# more than the file name does.
-ignore = ["D100", "D104"]
+# Docstrings are optional on modules and on magic methods: write one only
+# when it says more than the name does.
+ignore = ["D100", "D104", "D105"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Core domain model: models, versions with semantic version numbers, runs and aliases, with the rules for releasing, renumbering and deleting a version.
+- Interfaces (ports) for the metadata store and the artifact store, and provisional ones for the executor, the serving backend and the image registry.
+
 ## [0.1.0a1] - 2026-11-11
 
 First pre-release: the project foundations and the command line skeleton. The model lifecycle features are not implemented yet.
