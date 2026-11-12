@@ -34,6 +34,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
+  "pydantic>=2.5.3",
   "typer>=0.27",
 ]
 
@@ -44,7 +45,7 @@ Issues = "https://github.com/UltiPro/miniops/issues"
 Changelog = "https://github.com/UltiPro/miniops/blob/main/CHANGELOG.md"
 
 [project.scripts]
-miniops = "miniops.cli:app"
+miniops = "miniops.cli:main"
 
 [dependency-groups]
 dev = [

@@ -20,3 +20,7 @@ class IntegrityError(MiniopsError):
 
 class IncompatibleStoreError(MiniopsError):
     """The store was written by a newer miniOPs than the one that opened it."""
+
+
+class ConfigError(MiniopsError):
+    """A configuration file is missing or not valid."""
