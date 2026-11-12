@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 from contextlib import closing
 from datetime import UTC, datetime
@@ -42,7 +43,7 @@ def test_a_new_store_gets_the_newest_schema(tmp_path: Path) -> None:
 
 
 def test_an_older_store_is_upgraded_after_a_backup(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     path = tmp_path / "metadata.db"
     with SqliteMetadataStore(path) as store:
@@ -52,10 +53,14 @@ def test_an_older_store_is_upgraded_after_a_backup(
         schema, "MIGRATIONS", (*schema.MIGRATIONS, "CREATE TABLE deployments (id TEXT);")
     )
 
-    with SqliteMetadataStore(path) as store:
+    with caplog.at_level(logging.INFO, logger="miniops"), SqliteMetadataStore(path) as store:
         assert store.list_models() == [MODEL]
 
     backup = tmp_path / f"metadata.db.v{older}.bak"
+    assert caplog.messages == [
+        f"Copied the store {path} to {backup} before upgrading its schema",
+        f"The store {path} now has schema version {older + 1}",
+    ]
     assert version_of(path) == older + 1
     assert "deployments" in tables_of(path)
     assert version_of(backup) == older

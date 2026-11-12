@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from miniops.config.project import Target, find_project, init_project
+from miniops.config.project import Target, find_project, find_root, init_project
 from miniops.core.errors import AlreadyExistsError, ConfigError
 
 
@@ -107,6 +107,15 @@ def test_a_project_is_found_from_a_directory_inside_it(tmp_path: Path) -> None:
     inside.mkdir(parents=True)
 
     assert find_project(inside).root == tmp_path
+
+
+def test_the_root_is_found_without_reading_the_config(tmp_path: Path) -> None:
+    write_config(tmp_path, "[project\nname = ")
+    inside = tmp_path / "models"
+    inside.mkdir()
+
+    assert find_root(inside) == tmp_path
+    assert find_root(tmp_path.parent) is None
 
 
 def test_outside_a_project_the_error_says_how_to_start(tmp_path: Path) -> None:

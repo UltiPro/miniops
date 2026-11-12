@@ -50,7 +50,7 @@ def find_project(start: Path) -> Project:
     Raises:
         ConfigError: If there is no project, or its ``miniops.toml`` is not valid.
     """
-    root = _find_root(start)
+    root = find_root(start)
     if root is None:
         raise ConfigError(
             f"No miniOPs project in {start} or above it. Create one with `miniops init`."
@@ -67,7 +67,7 @@ def init_project(root: Path, name: str | None = None) -> Project:
         AlreadyExistsError: If the directory is a project already, or lies inside one.
         ConfigError: If the project would have no name.
     """
-    existing = _find_root(root)
+    existing = find_root(root)
     if existing is not None:
         raise AlreadyExistsError(f"There is already a miniOPs project in {existing}.")
     name = (name or root.name).strip()
@@ -84,7 +84,11 @@ def init_project(root: Path, name: str | None = None) -> Project:
     return Project(root=root, config=_load(config_file))
 
 
-def _find_root(start: Path) -> Path | None:
+def find_root(start: Path) -> Path | None:
+    """Return the directory of the project that ``start`` is in, or None.
+
+    It only looks for ``miniops.toml`` and does not read it.
+    """
     start = start.resolve()
     for directory in (start, *start.parents):
         if (directory / CONFIG_FILE).is_file():

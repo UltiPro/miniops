@@ -1,8 +1,11 @@
+import logging
 import sqlite3
 from contextlib import closing
 from pathlib import Path
 
 from miniops.core.errors import IncompatibleStoreError
+
+logger = logging.getLogger(__name__)
 
 # A released script never changes: a change to the schema is a new script at the end.
 MIGRATIONS: tuple[str, ...] = (
@@ -102,9 +105,11 @@ def migrate(connection: sqlite3.Connection, path: Path) -> None:
     except BaseException:
         connection.execute("ROLLBACK")
         raise
+    logger.info("The store %s now has schema version %d", path, newest)
 
 
 def _back_up(connection: sqlite3.Connection, path: Path, version: int) -> None:
     backup = path.with_name(f"{path.name}.v{version}.bak")
     with closing(sqlite3.connect(backup)) as copy:
         connection.backup(copy)
+    logger.info("Copied the store %s to %s before upgrading its schema", path, backup)
