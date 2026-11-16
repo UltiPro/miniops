@@ -7,6 +7,7 @@ from miniops import __version__
 from miniops.cli.config import config_app
 from miniops.cli.init import init
 from miniops.cli.new import new
+from miniops.cli.registry import registry_app
 
 app = typer.Typer(
     name="miniops",
@@ -16,6 +17,7 @@ app = typer.Typer(
 app.command("init")(init)
 app.command("new")(new)
 app.add_typer(config_app, name="config")
+app.add_typer(registry_app, name="registry")
 
 
 def _print_version(value: bool) -> None:
