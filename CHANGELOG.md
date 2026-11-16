@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `miniops init` creates a project in the current directory: it writes `miniops.toml` and adds `.miniops/` to `.gitignore`.
 - `miniops config show` prints the configuration of the project that the current directory belongs to.
 - A command that has a problem inside a project leaves its log in `.miniops/logs/miniops.log`: what it did and the full traceback of the error. A command without warnings or errors writes nothing there.
+- Local artifact store, the first implementation of the artifact port: files in `.miniops/artifacts/`. A stored file is never replaced, and its content is checked against its digest when it is read.
 
 ### Changed
 

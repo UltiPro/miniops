@@ -14,7 +14,10 @@ type Json = str | int | float | bool | list[Json] | dict[str, Json] | None
 # Fits a Cloud Run service name, so one name works as a directory, an image and a service.
 _NAME = re.compile(r"[a-z]([a-z0-9-]{0,47}[a-z0-9])?")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
-_KEY = re.compile(r"[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*")
+# One key is one file on every system: Windows and macOS ignore case, and Windows drops a
+# dot at the end of a name. A dot at the start marks a store's own files.
+_KEY_NAME = r"[a-z0-9]([a-z0-9._-]*[a-z0-9])?"
+_KEY = re.compile(rf"{_KEY_NAME}(/{_KEY_NAME})*")
 
 
 def _require_name(kind: str, name: str) -> None:
@@ -33,6 +36,16 @@ def _require_digest(digest: str) -> None:
 def _require_aware(moment: datetime) -> None:
     if moment.tzinfo is None:
         raise ValueError("Timestamps need a time zone, for example datetime.now(UTC).")
+
+
+def require_artifact_key(key: str) -> None:
+    """Check that ``key`` can name a file in an artifact store.
+
+    Raises:
+        ValueError: If it cannot.
+    """
+    if _KEY.fullmatch(key) is None:
+        raise ValueError(f"Not a valid artifact key: {key!r}")
 
 
 class VersionStatus(StrEnum):
@@ -61,9 +74,7 @@ class ArtifactRef:
     size: int
 
     def __post_init__(self) -> None:
-        # Keys are relative and use "/", so a store can move to another disk, system or bucket.
-        if _KEY.fullmatch(self.key) is None or {".", ".."} & set(self.key.split("/")):
-            raise ValueError(f"Not a valid artifact key: {self.key!r}")
+        require_artifact_key(self.key)
         _require_digest(self.digest)
         if self.size < 0:
             raise ValueError(f"Artifact size cannot be negative: {self.size}")

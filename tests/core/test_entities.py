@@ -68,7 +68,28 @@ def test_timestamps_need_a_time_zone() -> None:
 
 
 @pytest.mark.parametrize(
-    "key", ["", "/abs/model.skops", "a/../b", "./a", "a//b", "a\\b", "C:/a", "a/"]
+    "key", ["model.skops", "runs/7c1e/model.skops", "snapshots/ab/cdef.zip", "a_b/c-d/1.0.0"]
+)
+def test_artifact_keys_are_names_joined_by_slashes(key: str) -> None:
+    assert ArtifactRef(key=key, digest=DIGEST, size=1).key == key
+
+
+@pytest.mark.parametrize(
+    "key",
+    [
+        "",
+        "/abs/model.skops",
+        "a/../b",
+        "./a",
+        "a//b",
+        "a\\b",
+        "C:/a",
+        "a/",
+        "Models/churn",
+        "a/.hidden",
+        "a./b",
+        "a/b.",
+    ],
 )
 def test_artifact_keys_are_relative_and_portable(key: str) -> None:
     with pytest.raises(ValueError, match="artifact key"):
