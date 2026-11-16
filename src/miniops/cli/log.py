@@ -39,8 +39,7 @@ class CommandLog(logging.Handler):
             self._write()
 
     def _set_aside_a_full_file(self) -> None:
-        # The rename fails when there is no file yet, or when another miniOPs process is
-        # writing to it (Windows). This command then adds to the file that is there.
+        # No file yet, or Windows refuses the rename while another process has the file open.
         with suppress(OSError):
             if self.file.stat().st_size > MAX_BYTES:
                 self.file.replace(self.file.with_name(f"{self.file.name}.1"))
