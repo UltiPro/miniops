@@ -9,14 +9,14 @@ import pytest
 
 from miniops.adapters.local import schema
 from miniops.adapters.local.metadata import SqliteMetadataStore
-from miniops.core.entities import Model
+from miniops.core.entities import Model, Task
 from miniops.core.errors import IncompatibleStoreError
 
 MODEL = Model(
     id=uuid4(),
     name="churn",
     flavor="sklearn",
-    task="binary_classification",
+    task=Task.BINARY_CLASSIFICATION,
     created_at=datetime(2026, 11, 11, 12, 0, tzinfo=UTC),
 )
 
@@ -82,6 +82,19 @@ def test_a_failed_upgrade_changes_nothing(tmp_path: Path, monkeypatch: pytest.Mo
 
     assert version_of(path) == older
     assert "deployments" not in tables_of(path)
+
+
+def test_a_store_that_cannot_grow_says_so(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "metadata.db"
+    too_big = "CREATE TABLE big (content); INSERT INTO big VALUES (zeroblob(5000000));"
+    monkeypatch.setattr(schema, "MIGRATIONS", (too_big,))
+    with closing(sqlite3.connect(path, autocommit=True)) as connection:
+        connection.execute("PRAGMA max_page_count = 20")
+
+        with pytest.raises(sqlite3.OperationalError, match="full"):
+            schema.migrate(connection, path)
+
+        assert schema.schema_version(connection) == 0
 
 
 def test_a_store_from_a_newer_miniops_is_refused(tmp_path: Path) -> None:

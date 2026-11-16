@@ -103,7 +103,9 @@ def migrate(connection: sqlite3.Connection, path: Path) -> None:
             connection.execute(f"PRAGMA user_version = {number + 1}")
         connection.execute("COMMIT")
     except BaseException:
-        connection.execute("ROLLBACK")
+        # SQLite ends the transaction itself when the disk is full.
+        if connection.in_transaction:
+            connection.execute("ROLLBACK")
         raise
     logger.info("The store %s now has schema version %d", path, newest)
 

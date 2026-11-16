@@ -64,7 +64,7 @@ miniOPs starts where data engineering ends. It does **not** ingest, clean, join 
 pip install miniops-ml          # the command is `miniops`
 
 miniops init
-miniops new churn --flavor sklearn --target local
+miniops new churn --flavor sklearn --task binary_classification
 miniops train churn --data data/train.parquet
 miniops report churn --version 1.0.0          # HTML report
 miniops registry release churn --version 1.0.0

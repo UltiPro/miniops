@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from contextlib import AbstractContextManager
 from typing import Protocol
 from uuid import UUID
 
@@ -12,6 +13,12 @@ class MetadataStore(Protocol):
     Only the miniOPs process on the host writes to it. Entities are immutable, so a change
     is always "build the new value, then store it here".
     """
+
+    def transaction(self) -> AbstractContextManager[None]:
+        """Group the writes of a ``with`` block: either all of them are stored or none.
+
+        Transactions do not nest.
+        """
 
     def add_model(self, model: Model) -> None:
         """Register a model.

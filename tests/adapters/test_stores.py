@@ -7,7 +7,7 @@ import pytest
 
 from miniops.adapters.stores import open_stores
 from miniops.config.project import init_project
-from miniops.core.entities import Model
+from miniops.core.entities import Model, Task
 
 CONTENT = b"a trained model"
 KEY = "runs/7c1e/model.skops"
@@ -18,7 +18,7 @@ def a_model() -> Model:
         id=uuid4(),
         name="churn",
         flavor="sklearn",
-        task="binary_classification",
+        task=Task.BINARY_CLASSIFICATION,
         created_at=datetime(2026, 11, 12, 12, 0, tzinfo=UTC),
     )
 

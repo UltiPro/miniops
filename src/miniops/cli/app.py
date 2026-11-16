@@ -6,6 +6,7 @@ import typer
 from miniops import __version__
 from miniops.cli.config import config_app
 from miniops.cli.init import init
+from miniops.cli.new import new
 
 app = typer.Typer(
     name="miniops",
@@ -13,6 +14,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 app.command("init")(init)
+app.command("new")(new)
 app.add_typer(config_app, name="config")
 
 

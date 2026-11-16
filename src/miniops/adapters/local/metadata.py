@@ -19,6 +19,7 @@ from miniops.core.entities import (
     Run,
     RunStatus,
     Signature,
+    Task,
     VersionRef,
     VersionStatus,
 )
@@ -55,6 +56,19 @@ class SqliteMetadataStore(MetadataStore):
 
     def __exit__(self, *_: object) -> None:
         self.close()
+
+    @override
+    @contextmanager
+    def transaction(self) -> Generator[None]:
+        self._connection.execute("BEGIN IMMEDIATE")
+        try:
+            yield
+            self._connection.execute("COMMIT")
+        except BaseException:
+            # The commit may be done already, and SQLite ends the transaction on a full disk.
+            if self._connection.in_transaction:
+                self._connection.execute("ROLLBACK")
+            raise
 
     @override
     def add_model(self, model: Model) -> None:
@@ -230,7 +244,7 @@ def _model_row(model: Model) -> _Row:
         "id": str(model.id),
         "name": model.name,
         "flavor": model.flavor,
-        "task": model.task,
+        "task": str(model.task),
         "created_at": _text(model.created_at),
     }
 
@@ -240,7 +254,7 @@ def _model(row: sqlite3.Row) -> Model:
         id=UUID(row["id"]),
         name=row["name"],
         flavor=row["flavor"],
-        task=row["task"],
+        task=Task(row["task"]),
         created_at=datetime.fromisoformat(row["created_at"]),
     )
 
