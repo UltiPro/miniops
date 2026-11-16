@@ -12,6 +12,7 @@ from miniops.core.entities import (
     ModelVersion,
     Run,
     RunStatus,
+    Task,
     VersionRef,
     VersionStatus,
 )
@@ -43,10 +44,10 @@ def released() -> ModelVersion:
     return version.release(successful_run(version), DIGEST, LATER)
 
 
-@pytest.mark.parametrize("name", ["churn", "churn-v2", "a", "x" * 49])
+@pytest.mark.parametrize("name", ["churn", "churn-v2", "a", "x" * 49, "console", "com10"])
 def test_model_accepts_names_that_work_everywhere(name: str) -> None:
     model = Model(
-        id=uuid4(), name=name, flavor="sklearn", task="binary_classification", created_at=NOW
+        id=uuid4(), name=name, flavor="sklearn", task=Task.BINARY_CLASSIFICATION, created_at=NOW
     )
 
     assert model.name == name
@@ -57,7 +58,17 @@ def test_model_accepts_names_that_work_everywhere(name: str) -> None:
 )
 def test_model_rejects_other_names(name: str) -> None:
     with pytest.raises(ValueError, match="Invalid model name"):
-        Model(id=uuid4(), name=name, flavor="sklearn", task="binary_classification", created_at=NOW)
+        Model(
+            id=uuid4(), name=name, flavor="sklearn", task=Task.BINARY_CLASSIFICATION, created_at=NOW
+        )
+
+
+@pytest.mark.parametrize("name", ["nul", "con", "aux", "prn", "com1", "lpt9"])
+def test_model_rejects_names_that_windows_keeps_for_devices(name: str) -> None:
+    with pytest.raises(ValueError, match="Windows keeps this name"):
+        Model(
+            id=uuid4(), name=name, flavor="sklearn", task=Task.BINARY_CLASSIFICATION, created_at=NOW
+        )
 
 
 def test_timestamps_need_a_time_zone() -> None:
@@ -68,7 +79,14 @@ def test_timestamps_need_a_time_zone() -> None:
 
 
 @pytest.mark.parametrize(
-    "key", ["model.skops", "runs/7c1e/model.skops", "snapshots/ab/cdef.zip", "a_b/c-d/1.0.0"]
+    "key",
+    [
+        "model.skops",
+        "runs/7c1e/model.skops",
+        "snapshots/ab/cdef.zip",
+        "a_b/c-d/1.0.0",
+        "console/null.txt",
+    ],
 )
 def test_artifact_keys_are_names_joined_by_slashes(key: str) -> None:
     assert ArtifactRef(key=key, digest=DIGEST, size=1).key == key
@@ -89,6 +107,10 @@ def test_artifact_keys_are_names_joined_by_slashes(key: str) -> None:
         "a/.hidden",
         "a./b",
         "a/b.",
+        "nul",
+        "runs/nul/model.skops",
+        "runs/aux.txt",
+        "com1.tar.gz",
     ],
 )
 def test_artifact_keys_are_relative_and_portable(key: str) -> None:

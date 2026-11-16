@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `miniops config show` prints the configuration of the project that the current directory belongs to.
 - A command that has a problem inside a project leaves its log in `.miniops/logs/miniops.log`: what it did and the full traceback of the error. A command without warnings or errors writes nothing there.
 - Local artifact store, the first implementation of the artifact port: files in `.miniops/artifacts/`. A stored file is never replaced, and its content is checked against its digest when it is read.
+- `miniops new <name> --flavor sklearn --task <task>` creates a model in the project: the directory `models/<name>/` with `model.toml` and a `model.py` to fill in, and the model in the store with its first draft, `1.0.0`.
 
 ### Changed
 

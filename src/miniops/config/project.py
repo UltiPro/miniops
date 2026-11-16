@@ -1,15 +1,16 @@
 import json
-import tomllib
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import Field
 
+from miniops.config.toml import Table, load
 from miniops.core.errors import AlreadyExistsError, ConfigError
 
 CONFIG_FILE = "miniops.toml"
 STATE_DIR = ".miniops"
+MODELS_DIR = "models"
 
 
 class Target(StrEnum):
@@ -18,19 +19,14 @@ class Target(StrEnum):
     LOCAL = "local"
 
 
-class _Table(BaseModel):
-    # An unknown key is almost always a typo.
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-
-class ProjectSection(_Table):
+class ProjectSection(Table):
     """The ``[project]`` table of ``miniops.toml``."""
 
     name: str = Field(min_length=1)
     default_target: Target = Target.LOCAL
 
 
-class ProjectConfig(_Table):
+class ProjectConfig(Table):
     """The content of ``miniops.toml``."""
 
     project: ProjectSection
@@ -55,7 +51,7 @@ def find_project(start: Path) -> Project:
         raise ConfigError(
             f"No miniOPs project in {start} or above it. Create one with `miniops init`."
         )
-    return Project(root=root, config=_load(root / CONFIG_FILE))
+    return Project(root=root, config=load(root / CONFIG_FILE, ProjectConfig))
 
 
 def init_project(root: Path, name: str | None = None) -> Project:
@@ -81,7 +77,7 @@ def init_project(root: Path, name: str | None = None) -> Project:
         newline="\n",
     )
     _ignore_state(root)
-    return Project(root=root, config=_load(config_file))
+    return Project(root=root, config=load(config_file, ProjectConfig))
 
 
 def find_root(start: Path) -> Path | None:
@@ -94,22 +90,6 @@ def find_root(start: Path) -> Path | None:
         if (directory / CONFIG_FILE).is_file():
             return directory
     return None
-
-
-def _load(path: Path) -> ProjectConfig:
-    try:
-        with path.open("rb") as file:
-            data = tomllib.load(file)
-    except tomllib.TOMLDecodeError as error:
-        raise ConfigError(f"{path} is not valid TOML: {error}") from error
-    try:
-        return ProjectConfig.model_validate(data)
-    except ValidationError as error:
-        problems = "\n".join(
-            f"  {'.'.join(str(part) for part in problem['loc'])}: {problem['msg']}"
-            for problem in error.errors()
-        )
-        raise ConfigError(f"{path} is not valid:\n{problems}") from error
 
 
 def _ignore_state(root: Path) -> None:

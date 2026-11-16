@@ -18,14 +18,26 @@ _SHA256 = re.compile(r"[0-9a-f]{64}")
 # dot at the end of a name. A dot at the start marks a store's own files.
 _KEY_NAME = r"[a-z0-9]([a-z0-9._-]*[a-z0-9])?"
 _KEY = re.compile(rf"{_KEY_NAME}(/{_KEY_NAME})*")
+# Windows keeps these names for devices, even with an extension ("nul.txt").
+_DEVICES = frozenset(
+    {"con", "prn", "aux", "nul"}
+    | {f"{port}{number}" for port in ("com", "lpt") for number in range(10)}
+)
 
 
-def _require_name(kind: str, name: str) -> None:
+def require_name(kind: str, name: str) -> None:
+    """Check the name of a model or an alias. ``kind`` says which of the two it is.
+
+    Raises:
+        ValueError: If the name cannot be used.
+    """
     if _NAME.fullmatch(name) is None:
         raise ValueError(
             f"Invalid {kind} name: {name!r}. Use lowercase letters, digits and '-', "
             "starting with a letter, at most 49 characters."
         )
+    if name in _DEVICES:
+        raise ValueError(f"Invalid {kind} name: {name!r}. Windows keeps this name for a device.")
 
 
 def _require_digest(digest: str) -> None:
@@ -44,8 +56,17 @@ def require_artifact_key(key: str) -> None:
     Raises:
         ValueError: If it cannot.
     """
-    if _KEY.fullmatch(key) is None:
+    names = key.split("/")
+    if _KEY.fullmatch(key) is None or any(name.split(".")[0] in _DEVICES for name in names):
         raise ValueError(f"Not a valid artifact key: {key!r}")
+
+
+class Task(StrEnum):
+    """What a model predicts."""
+
+    BINARY_CLASSIFICATION = "binary_classification"
+    MULTICLASS_CLASSIFICATION = "multiclass_classification"
+    REGRESSION = "regression"
 
 
 class VersionStatus(StrEnum):
@@ -132,11 +153,11 @@ class Model:
     id: UUID
     name: str
     flavor: str
-    task: str
+    task: Task
     created_at: datetime
 
     def __post_init__(self) -> None:
-        _require_name("model", self.name)
+        require_name("model", self.name)
         _require_aware(self.created_at)
 
 
@@ -288,5 +309,5 @@ class Alias:
     updated_at: datetime
 
     def __post_init__(self) -> None:
-        _require_name("alias", self.name)
+        require_name("alias", self.name)
         _require_aware(self.updated_at)

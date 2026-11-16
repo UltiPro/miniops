@@ -20,6 +20,7 @@ from miniops.core.entities import (
     Run,
     RunStatus,
     Signature,
+    Task,
     VersionRef,
     VersionStatus,
 )
@@ -40,7 +41,7 @@ def store(tmp_path: Path) -> Iterator[SqliteMetadataStore]:
 
 def add_model(store: SqliteMetadataStore, name: str = "churn") -> Model:
     model = Model(
-        id=uuid4(), name=name, flavor="sklearn", task="binary_classification", created_at=NOW
+        id=uuid4(), name=name, flavor="sklearn", task=Task.BINARY_CLASSIFICATION, created_at=NOW
     )
     store.add_model(model)
     return model
@@ -109,7 +110,9 @@ def test_a_draft_comes_back_as_it_was_stored(store: SqliteMetadataStore) -> None
 
 
 def test_a_version_needs_its_model(store: SqliteMetadataStore) -> None:
-    stranger = Model(id=uuid4(), name="churn", flavor="sklearn", task="regression", created_at=NOW)
+    stranger = Model(
+        id=uuid4(), name="churn", flavor="sklearn", task=Task.REGRESSION, created_at=NOW
+    )
     version = ModelVersion(id=uuid4(), model_id=stranger.id, number=SemVer(1, 0, 0), created_at=NOW)
 
     with pytest.raises(NotFoundError, match="no model"):
@@ -400,6 +403,37 @@ def test_an_alias_can_be_removed(store: SqliteMetadataStore) -> None:
     assert store.get_alias(model.id, "champion") is None
     with pytest.raises(NotFoundError, match="no alias 'champion'"):
         store.delete_alias(model.id, "champion")
+
+
+def test_a_transaction_stores_all_of_its_writes(store: SqliteMetadataStore) -> None:
+    with store.transaction():
+        model = add_model(store)
+        version = add_draft(store, model)
+
+    assert store.list_models() == [model]
+    assert store.list_versions(model.id) == [version]
+
+
+def test_a_transaction_that_fails_stores_nothing(store: SqliteMetadataStore) -> None:
+    with pytest.raises(NotFoundError, match="no model"), store.transaction():
+        model = add_model(store)
+        add_draft(store, replace(model, id=uuid4()))
+
+    assert store.list_models() == []
+    with store.transaction():
+        add_model(store)
+    assert [model.name for model in store.list_models()] == ["churn"]
+
+
+def test_a_transaction_on_a_full_disk_says_so(store: SqliteMetadataStore) -> None:
+    pages = store._connection.execute("PRAGMA page_count").fetchone()[0]
+    store._connection.execute(f"PRAGMA max_page_count = {pages}")
+
+    with pytest.raises(sqlite3.OperationalError, match="full"), store.transaction():
+        version = add_draft(store, add_model(store))
+        store.add_run(replace(add_run(store, version), id=uuid4(), params={"x": "x" * 10**6}))
+
+    assert store.list_models() == []
 
 
 def test_a_store_keeps_its_content_between_sessions(tmp_path: Path) -> None:
