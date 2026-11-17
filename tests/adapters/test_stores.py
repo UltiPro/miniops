@@ -1,13 +1,17 @@
 import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 from uuid import uuid4
 
 import pytest
 
+from miniops.adapters.local.metadata import SqliteMetadataStore
 from miniops.adapters.stores import open_stores
 from miniops.config.project import init_project
 from miniops.core.entities import Model, Task
+from miniops.core.errors import StoreBusyError
 
 CONTENT = b"a trained model"
 KEY = "runs/7c1e/model.skops"
@@ -61,3 +65,24 @@ def test_the_metadata_store_is_closed_after_the_block(tmp_path: Path) -> None:
 
     with pytest.raises(sqlite3.ProgrammingError, match="closed"):
         stores.metadata.list_models()
+
+
+def test_a_damaged_metadata_store_is_a_problem_of_the_system(tmp_path: Path) -> None:
+    project = init_project(tmp_path)
+    state = tmp_path / ".miniops"
+    state.mkdir()
+    (state / "metadata.db").write_bytes(b"not a database, but long enough to have a header" * 10)
+
+    with pytest.raises(OSError, match="Cannot use the store"), open_stores(project):
+        pass
+
+
+def test_a_busy_store_is_reported_also_inside_the_block(tmp_path: Path) -> None:
+    project = init_project(tmp_path)
+
+    with pytest.raises(StoreBusyError), open_stores(project) as stores:
+        cast(SqliteMetadataStore, stores.metadata)._connection.execute("PRAGMA busy_timeout = 0")
+        database = tmp_path / ".miniops" / "metadata.db"
+        with closing(sqlite3.connect(database, autocommit=True)) as other:
+            other.execute("BEGIN IMMEDIATE")
+            stores.metadata.add_model(a_model())

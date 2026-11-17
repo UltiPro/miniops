@@ -17,11 +17,17 @@ def load[T: BaseModel](path: Path, schema: type[T]) -> T:
     """Read a TOML file and check it against ``schema``.
 
     Raises:
-        ConfigError: If the file is not valid TOML or does not fit the schema.
+        ConfigError: If the file is missing, is not UTF-8 TOML or does not fit the schema.
     """
     try:
-        with path.open("rb") as file:
-            data = tomllib.load(file)
+        # Some Windows editors start a UTF-8 file with a byte order mark.
+        text = path.read_bytes().decode("utf-8-sig")
+    except FileNotFoundError as error:
+        raise ConfigError(f"{path} does not exist.") from error
+    except UnicodeDecodeError as error:
+        raise ConfigError(f"{path} is not saved as UTF-8 text.") from error
+    try:
+        data = tomllib.loads(text)
     except tomllib.TOMLDecodeError as error:
         raise ConfigError(f"{path} is not valid TOML: {error}") from error
     try:

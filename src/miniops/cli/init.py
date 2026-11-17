@@ -1,8 +1,8 @@
-from pathlib import Path
 from typing import Annotated
 
 import typer
 
+from miniops.cli.paths import current_directory
 from miniops.config.project import init_project
 
 
@@ -13,5 +13,5 @@ def init(
     ] = None,
 ) -> None:
     """Create a miniOPs project in the current directory."""
-    project = init_project(Path.cwd(), name)
+    project = init_project(current_directory(), name)
     typer.echo(f"Created the project {project.config.project.name!r} in {project.root}")
