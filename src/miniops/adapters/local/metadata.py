@@ -23,9 +23,27 @@ from miniops.core.entities import (
     VersionRef,
     VersionStatus,
 )
-from miniops.core.errors import AlreadyExistsError, InvalidStateError, NotFoundError
+from miniops.core.errors import (
+    AlreadyExistsError,
+    InvalidStateError,
+    NotFoundError,
+    StoreBusyError,
+)
 from miniops.core.versions import SemVer
 from miniops.ports.metadata import MetadataStore
+
+# SQLite reports these problems of the disk and of the file with codes of its own.
+_SYSTEM_FAILURES = frozenset(
+    {
+        sqlite3.SQLITE_CANTOPEN,
+        sqlite3.SQLITE_CORRUPT,
+        sqlite3.SQLITE_FULL,
+        sqlite3.SQLITE_IOERR,
+        sqlite3.SQLITE_NOTADB,
+        sqlite3.SQLITE_PERM,
+        sqlite3.SQLITE_READONLY,
+    }
+)
 
 
 class SqliteMetadataStore(MetadataStore):
@@ -203,6 +221,29 @@ class SqliteMetadataStore(MetadataStore):
 
 
 type _Row = Mapping[str, object]
+
+
+@contextmanager
+def store_errors(path: Path) -> Generator[None]:
+    """Turn a failure of SQLite into an error that says what happened to the store at ``path``.
+
+    Raises:
+        StoreBusyError: If another process is using the store.
+        OSError: If the disk or the file of the store fails.
+    """
+    try:
+        yield
+    except sqlite3.DatabaseError as error:
+        # The low byte is the primary code, also of an extended one that Python has no name for.
+        code = (getattr(error, "sqlite_errorcode", None) or 0) & 0xFF
+        if code == sqlite3.SQLITE_BUSY:
+            raise StoreBusyError(
+                f"The store {path} is busy because another process is using it. "
+                "Try again in a moment."
+            ) from error
+        if code in _SYSTEM_FAILURES:
+            raise OSError(f"Cannot use the store {path}: {error}") from error
+        raise
 
 
 @contextmanager

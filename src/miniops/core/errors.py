@@ -22,5 +22,9 @@ class IncompatibleStoreError(MiniopsError):
     """The store was written by a newer miniOPs than the one that opened it."""
 
 
+class StoreBusyError(MiniopsError):
+    """Another process is using the store."""
+
+
 class ConfigError(MiniopsError):
     """A configuration file is missing or not valid."""

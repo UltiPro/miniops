@@ -1,9 +1,9 @@
-from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from miniops.adapters.stores import open_stores
+from miniops.cli.paths import current_directory
 from miniops.config.model import Flavor
 from miniops.config.project import MODELS_DIR, find_project
 from miniops.core.entities import Task, require_name
@@ -24,7 +24,7 @@ def new(
     task: Annotated[Task, typer.Option(help="What the model predicts.")],
 ) -> None:
     """Create a model: its directory and its first draft."""
-    project = find_project(Path.cwd())
+    project = find_project(current_directory())
     directory = project.root / MODELS_DIR / name
     with open_stores(project) as stores:
         draft = create_model(stores.metadata, directory, name, flavor, task)

@@ -1,10 +1,10 @@
-from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from miniops.adapters.stores import open_stores
 from miniops.cli.output import columns, when
+from miniops.cli.paths import current_directory
 from miniops.config.project import find_project
 from miniops.core.entities import VersionStatus
 from miniops.core.registry import CatalogEntry, find_model, list_catalog
@@ -19,7 +19,7 @@ def list_models(
     ] = None,
 ) -> None:
     """List the models of the project, or the versions of one model."""
-    with open_stores(find_project(Path.cwd())) as stores:
+    with open_stores(find_project(current_directory())) as stores:
         if model is not None:
             typer.echo(_versions(find_model(stores.metadata, model)))
         elif entries := list_catalog(stores.metadata):
@@ -34,7 +34,7 @@ def show(
     version: Annotated[str, typer.Option(help="Number of the version, or an alias.")],
 ) -> None:
     """Show one version of a model."""
-    with open_stores(find_project(Path.cwd())) as stores:
+    with open_stores(find_project(current_directory())) as stores:
         entry = find_model(stores.metadata, model)
     found = entry.find_version(version)
     base = found.base

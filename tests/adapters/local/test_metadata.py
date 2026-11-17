@@ -1,6 +1,7 @@
 import math
 import sqlite3
 from collections.abc import Iterator
+from contextlib import closing
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
@@ -9,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 
-from miniops.adapters.local.metadata import SqliteMetadataStore
+from miniops.adapters.local.metadata import SqliteMetadataStore, store_errors
 from miniops.core.entities import (
     Alias,
     ArtifactRef,
@@ -24,7 +25,12 @@ from miniops.core.entities import (
     VersionRef,
     VersionStatus,
 )
-from miniops.core.errors import AlreadyExistsError, InvalidStateError, NotFoundError
+from miniops.core.errors import (
+    AlreadyExistsError,
+    InvalidStateError,
+    NotFoundError,
+    StoreBusyError,
+)
 from miniops.core.versions import SemVer
 
 NOW = datetime(2026, 11, 11, 12, 0, tzinfo=UTC)
@@ -447,3 +453,88 @@ def test_a_store_keeps_its_content_between_sessions(tmp_path: Path) -> None:
         assert store.list_models() == [model]
         assert store.list_versions(model.id) == [version]
         assert store.list_runs(version.id) == [run]
+
+
+def test_a_store_that_another_process_writes_to_is_busy(
+    store: SqliteMetadataStore, tmp_path: Path
+) -> None:
+    path = tmp_path / "metadata.db"
+    store._connection.execute("PRAGMA busy_timeout = 0")
+
+    with closing(sqlite3.connect(path, autocommit=True)) as other:
+        other.execute("BEGIN IMMEDIATE")
+        with (
+            pytest.raises(StoreBusyError, match="busy because another process"),
+            store_errors(path),
+        ):
+            add_model(store)
+
+    assert store.list_models() == []
+
+
+def test_a_full_disk_is_a_problem_of_the_system(store: SqliteMetadataStore, tmp_path: Path) -> None:
+    version = add_draft(store, add_model(store))
+    pages = store._connection.execute("PRAGMA page_count").fetchone()[0]
+    store._connection.execute(f"PRAGMA max_page_count = {pages}")
+    run = Run(
+        id=uuid4(),
+        version_id=version.id,
+        started_at=NOW,
+        miniops_version="0.1.0a1",
+        params={"x": "x" * 10**6},
+    )
+
+    with (
+        pytest.raises(OSError, match=r"Cannot use the store .*: database or disk is full"),
+        store_errors(tmp_path / "metadata.db"),
+    ):
+        store.add_run(run)
+
+
+def test_a_file_that_is_not_a_store_is_a_problem_of_the_system(tmp_path: Path) -> None:
+    path = tmp_path / "metadata.db"
+    path.write_bytes(b"not a database, but long enough to have a header" * 10)
+
+    with (
+        pytest.raises(OSError, match=r"Cannot use the store .*: file is not a database"),
+        store_errors(path),
+    ):
+        SqliteMetadataStore(path)
+
+
+def test_a_lock_inside_one_connection_is_a_bug_not_a_busy_store(
+    store: SqliteMetadataStore, tmp_path: Path
+) -> None:
+    add_model(store, "churn")
+    add_model(store, "fraud")
+    rows = store._connection.execute("SELECT * FROM models")
+    rows.fetchone()
+
+    with (
+        pytest.raises(sqlite3.OperationalError, match="table is locked"),
+        store_errors(tmp_path / "metadata.db"),
+    ):
+        store._connection.execute("DROP TABLE aliases")
+    rows.close()
+
+
+def test_an_extended_code_that_python_cannot_name_counts_by_its_primary_code(
+    tmp_path: Path,
+) -> None:
+    error = sqlite3.OperationalError("disk I/O error")
+    error.sqlite_errorcode = sqlite3.SQLITE_IOERR | (34 << 8)
+
+    with pytest.raises(OSError, match="disk I/O error"), store_errors(tmp_path / "metadata.db"):
+        raise error
+
+
+def test_other_failures_of_sqlite_are_left_as_they_are(
+    store: SqliteMetadataStore, tmp_path: Path
+) -> None:
+    path = tmp_path / "metadata.db"
+
+    with pytest.raises(sqlite3.OperationalError, match="no such table"), store_errors(path):
+        store._connection.execute("SELECT * FROM nowhere")
+    store.close()
+    with pytest.raises(sqlite3.ProgrammingError, match="closed"), store_errors(path):
+        store.list_models()

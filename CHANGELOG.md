@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Local metadata store in SQLite, the first implementation of the metadata port. Its schema is versioned and upgrades itself when a store is opened, after making a backup.
 - `miniops init` creates a project in the current directory: it writes `miniops.toml` and adds `.miniops/` to `.gitignore`.
 - `miniops config show` prints the configuration of the project that the current directory belongs to.
-- A command that has a problem inside a project leaves its log in `.miniops/logs/miniops.log`: what it did and the full traceback of the error. A command without warnings or errors writes nothing there.
+- A command that has a problem inside a project leaves its log in `.miniops/logs/miniops.log`: what it did and the error, with the full traceback when the error is a problem of the system or unexpected. A command without warnings or errors writes nothing there.
 - Local artifact store, the first implementation of the artifact port: files in `.miniops/artifacts/`. A stored file is never replaced, and its content is checked against its digest when it is read.
 - `miniops new <name> --flavor sklearn --task <task>` creates a model in the project: the directory `models/<name>/` with `model.toml` and a `model.py` to fill in, and the model in the store with its first draft, `1.0.0`.
 - `miniops registry list` shows the models of the project, `miniops registry list <model>` the versions of one model, and `miniops registry show <model> --version <number or alias>` one version.
@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - An error that miniOPs reports ends with a short message and exit code 1 instead of a traceback.
+- A problem of the system, such as a full disk, a missing permission or a file in the way, ends with its message, and inside a project with the path of the log. A store that another process is using is reported as busy.
+- A configuration file that is missing or not saved as UTF-8 is reported as a configuration error. A UTF-8 byte order mark at its start is accepted.
 - An unexpected error inside a project shows a short message with the path of the log instead of a traceback. Outside a project, where there is no log, the traceback is still shown.
 - pydantic is now a dependency. It validates the configuration files.
 
