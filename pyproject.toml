@@ -38,6 +38,13 @@ dependencies = [
   "typer>=0.27",
 ]
 
+[project.optional-dependencies]
+sklearn = [
+  "polars>=1.0",
+  "scikit-learn>=1.6",
+  "skops>=0.11",
+]
+
 [project.urls]
 Homepage = "https://github.com/UltiPro/miniops"
 Repository = "https://github.com/UltiPro/miniops"
@@ -49,6 +56,7 @@ miniops = "miniops.cli:main"
 
 [dependency-groups]
 dev = [
+  "miniops-ml[sklearn]",
   "mypy>=2.4",
   "pre-commit>=4.7",
   "pytest>=9.2",
@@ -91,6 +99,11 @@ files = ["src", "tests"]
 module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+# They ship without type hints.
+module = ["sklearn.*", "skops.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "9.0"
