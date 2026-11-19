@@ -5,6 +5,7 @@ import typer
 
 from miniops import __version__
 from miniops.cli.config import config_app
+from miniops.cli.doctor import doctor
 from miniops.cli.init import init
 from miniops.cli.new import new
 from miniops.cli.registry import registry_app
@@ -16,6 +17,7 @@ app = typer.Typer(
 )
 app.command("init")(init)
 app.command("new")(new)
+app.command("doctor")(doctor)
 app.add_typer(config_app, name="config")
 app.add_typer(registry_app, name="registry")
 

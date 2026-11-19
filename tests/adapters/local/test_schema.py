@@ -42,6 +42,16 @@ def test_a_new_store_gets_the_newest_schema(tmp_path: Path) -> None:
     assert list(tmp_path.iterdir()) == [path]
 
 
+def test_reading_the_version_of_a_missing_store_does_not_create_it(tmp_path: Path) -> None:
+    path = tmp_path / "metadata.db"
+
+    assert schema.read_version(path) is None
+    assert not path.exists()
+
+    SqliteMetadataStore(path).close()
+    assert schema.read_version(path) == schema.newest_version()
+
+
 def test_an_older_store_is_upgraded_after_a_backup(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:

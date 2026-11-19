@@ -77,6 +77,22 @@ def schema_version(connection: sqlite3.Connection) -> int:
     return version
 
 
+def newest_version() -> int:
+    """Return the schema version that this miniOPs gives a store."""
+    return len(MIGRATIONS)
+
+
+def read_version(path: Path) -> int | None:
+    """Return the schema version of the store at ``path``, or None if there is no store.
+
+    It only reads: a missing store is not created and an older one is not upgraded.
+    """
+    if not path.exists():
+        return None
+    with closing(sqlite3.connect(path)) as connection:
+        return schema_version(connection)
+
+
 def migrate(connection: sqlite3.Connection, path: Path) -> None:
     """Bring a store up to the newest schema, after saving a copy of an older one.
 
@@ -84,7 +100,7 @@ def migrate(connection: sqlite3.Connection, path: Path) -> None:
         IncompatibleStoreError: If the store was written by a newer miniOPs.
     """
     version = schema_version(connection)
-    newest = len(MIGRATIONS)
+    newest = newest_version()
     if version > newest:
         raise IncompatibleStoreError(
             f"The store at {path} has schema version {version}, but this miniOPs reads "

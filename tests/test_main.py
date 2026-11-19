@@ -1,3 +1,4 @@
+import io
 import os
 import runpy
 import sys
@@ -57,6 +58,31 @@ def test_a_command_that_needs_no_directory_works_when_the_current_one_is_gone(
 
     assert exit_info.value.code == 0
     assert capsys.readouterr().out.strip() == f"miniops {__version__}"
+
+
+def test_text_that_the_output_cannot_hold_does_not_stop_the_command(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    init_project(tmp_path, "数据")
+    # Redirected output on Windows: the ANSI code page, which has no place for these characters.
+    output = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
+    monkeypatch.setattr(sys, "stdout", output)
+
+    assert run(monkeypatch, tmp_path, "config", "show") == 0
+
+    output.flush()
+    assert "Name            ??" in output.buffer.getvalue().decode("cp1252").splitlines()
+
+
+def test_an_output_that_is_not_a_file_is_used_as_it_is(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", output)
+
+    assert run(monkeypatch, tmp_path, "--version") == 0
+
+    assert output.getvalue() == f"miniops {__version__}\n"
 
 
 def test_a_command_that_succeeds_leaves_no_log(
