@@ -28,3 +28,11 @@ class StoreBusyError(MiniopsError):
 
 class ConfigError(MiniopsError):
     """A configuration file is missing or not valid."""
+
+
+class DataError(MiniopsError):
+    """Data does not fit what a model needs, like a column that is missing."""
+
+
+class UntrustedTypesError(MiniopsError):
+    """A saved model needs types that the caller did not trust."""

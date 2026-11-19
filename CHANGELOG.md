@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `miniops new <name> --flavor sklearn --task <task>` creates a model in the project: the directory `models/<name>/` with `model.toml` and a `model.py` to fill in, and the model in the store with its first draft, `1.0.0`.
 - `miniops registry list` shows the models of the project, `miniops registry list <model>` the versions of one model, and `miniops registry show <model> --version <number or alias>` one version.
 - `miniops doctor` checks that uv and git are installed and that git has a user name and email, and inside a project, its configuration and the schema version of its store. It changes nothing and ends with exit code 1 when it finds a problem.
+- The scikit-learn flavor, installed with `miniops-ml[sklearn]` (polars, scikit-learn and skops). A model class subclasses `SklearnModel` and returns its estimator from `build`. It trains on a polars DataFrame, checks that the target column fits the task, predicts a `prediction` column and saves the model with skops, which refuses to load types that were not trusted.
 
 ### Changed
 
