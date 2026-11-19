@@ -1,3 +1,4 @@
+import io
 import logging
 import shlex
 import sys
@@ -8,6 +9,7 @@ import typer
 from miniops import __version__
 from miniops.cli.app import app
 from miniops.cli.log import CommandLog, project_log
+from miniops.cli.output import describe
 from miniops.core.errors import MiniopsError
 
 __all__ = ["app", "main"]
@@ -21,6 +23,11 @@ def main() -> None:
     An error ends with a short message. The log of the project keeps its traceback, unless
     miniOPs reported the error itself.
     """
+    # Redirected on Windows, the output is in the ANSI code page, which has no place for every
+    # character of a name or a path.
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(errors="replace")
     with project_log() as command_log:
         logger.info("miniops %s: %s", __version__, shlex.join(sys.argv[1:]))
         try:
@@ -30,7 +37,7 @@ def main() -> None:
             _fail(f"Error: {error}")
         except OSError as error:
             # A full disk or a missing permission is a problem of the system, not a bug.
-            message = _describe(error)
+            message = describe(error)
             logger.error("Command failed: %s", message, exc_info=True)
             _fail(f"Error: {message}", command_log)
         except Exception as error:
@@ -42,16 +49,6 @@ def main() -> None:
                 "This is a bug.",
                 command_log,
             )
-
-
-def _describe(error: OSError) -> str:
-    # str() adds the number of the error and shows a path as Python code, with every
-    # backslash doubled on Windows.
-    if error.strerror is None:
-        return str(error)
-    files = (error.filename, error.filename2)
-    names = " -> ".join(str(name) for name in files if name is not None)
-    return f"{error.strerror}: {names}" if names else error.strerror
 
 
 def _fail(message: str, command_log: CommandLog | None = None) -> NoReturn:

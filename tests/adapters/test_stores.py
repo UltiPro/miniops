@@ -7,8 +7,9 @@ from uuid import uuid4
 
 import pytest
 
+from miniops.adapters.local import schema
 from miniops.adapters.local.metadata import SqliteMetadataStore
-from miniops.adapters.stores import open_stores
+from miniops.adapters.stores import StoreSchema, open_stores, store_schema
 from miniops.config.project import init_project
 from miniops.core.entities import Model, Task
 from miniops.core.errors import StoreBusyError
@@ -75,6 +76,54 @@ def test_a_damaged_metadata_store_is_a_problem_of_the_system(tmp_path: Path) -> 
 
     with pytest.raises(OSError, match="Cannot use the store"), open_stores(project):
         pass
+
+
+def test_the_schema_is_read_without_creating_the_store(tmp_path: Path) -> None:
+    project = init_project(tmp_path)
+
+    assert store_schema(project) == StoreSchema(version=None, newest=schema.newest_version())
+    assert not (tmp_path / ".miniops").exists()
+
+    with open_stores(project):
+        pass
+    newest = schema.newest_version()
+    assert store_schema(project) == StoreSchema(version=newest, newest=newest)
+
+
+def test_reading_the_schema_does_not_upgrade_an_older_store(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = init_project(tmp_path)
+    with open_stores(project):
+        pass
+    database = tmp_path / ".miniops" / "metadata.db"
+    content = database.read_bytes()
+    older = schema.newest_version()
+    monkeypatch.setattr(
+        schema, "MIGRATIONS", (*schema.MIGRATIONS, "CREATE TABLE deployments (id TEXT);")
+    )
+
+    assert store_schema(project) == StoreSchema(version=older, newest=older + 1)
+    assert database.read_bytes() == content
+    assert list(database.parent.iterdir()) == [database]
+
+
+def test_a_file_where_the_stores_belong_is_a_problem_of_the_system(tmp_path: Path) -> None:
+    project = init_project(tmp_path)
+    (tmp_path / ".miniops").write_text("not a directory", encoding="utf-8")
+
+    with pytest.raises(OSError, match="is not a directory"):
+        store_schema(project)
+
+
+def test_the_schema_of_a_damaged_store_is_a_problem_of_the_system(tmp_path: Path) -> None:
+    project = init_project(tmp_path)
+    database = tmp_path / ".miniops" / "metadata.db"
+    database.parent.mkdir()
+    database.write_bytes(b"not a database, but long enough to have a header" * 10)
+
+    with pytest.raises(OSError, match="Cannot use the store"):
+        store_schema(project)
 
 
 def test_a_busy_store_is_reported_also_inside_the_block(tmp_path: Path) -> None:
