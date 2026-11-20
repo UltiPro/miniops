@@ -1,3 +1,14 @@
+def describe(error: OSError) -> str:
+    """Return the message of a problem of the system, with its files as they are."""
+    # str() adds the number of the error and shows a path as Python code, with every
+    # backslash doubled on Windows.
+    if error.strerror is None:
+        return str(error)
+    files = (error.filename, error.filename2)
+    names = " -> ".join(str(name) for name in files if name is not None)
+    return f"{error.strerror}: {names}" if names else error.strerror
+
+
 class MiniopsError(Exception):
     """Base class for errors that miniOPs reports to the user."""
 
@@ -36,3 +47,7 @@ class DataError(MiniopsError):
 
 class UntrustedTypesError(MiniopsError):
     """A saved model needs types that the caller did not trust."""
+
+
+class ProtocolError(MiniopsError):
+    """A job or result file is damaged, or newer than this miniOPs."""

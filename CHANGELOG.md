@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `miniops registry list` shows the models of the project, `miniops registry list <model>` the versions of one model, and `miniops registry show <model> --version <number or alias>` one version.
 - `miniops doctor` checks that uv and git are installed and that git has a user name and email, and inside a project, its configuration and the schema version of its store. It changes nothing and ends with exit code 1 when it finds a problem.
 - The scikit-learn flavor, installed with `miniops-ml[sklearn]` (polars, scikit-learn and skops). A model class subclasses `SklearnModel` and returns its estimator from `build`. It trains on a polars DataFrame, checks that the target column fits the task, predicts a `prediction` column and saves the model with skops, which refuses to load types that were not trusted.
+- The job runner, `python -m miniops.runner <job file>`, which runs in the environment of a model. It reads a job file, trains the class that `entrypoint` names on a Parquet file and writes the model files and a result file with the signature, the types to trust when loading and where it ran. A failed training leaves a result that says why. Both files carry a protocol version.
 
 ### Changed
 

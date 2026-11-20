@@ -12,12 +12,16 @@ MODEL_SIDE = {
     "miniops.flavors",
     "miniops.flavors.base",
     "miniops.flavors.sklearn",
+    "miniops.runner",
+    "miniops.runner.__main__",
+    "miniops.runner.jobs",
+    "miniops.runner.protocol",
 }
 
 
 def test_the_code_of_a_model_environment_imports_nothing_from_the_host() -> None:
     script = (
-        "import sys, miniops.flavors.sklearn; "
+        "import sys, miniops.flavors.sklearn, miniops.runner.__main__; "
         "print(*(name for name in sys.modules if name.split('.')[0] == 'miniops'))"
     )
     result = subprocess.run(
@@ -25,5 +29,5 @@ def test_the_code_of_a_model_environment_imports_nothing_from_the_host() -> None
     )
     imported = set(result.stdout.split())
 
-    assert "miniops.flavors.sklearn" in imported
+    assert {"miniops.flavors.sklearn", "miniops.runner.__main__"} <= imported
     assert imported - MODEL_SIDE == set()

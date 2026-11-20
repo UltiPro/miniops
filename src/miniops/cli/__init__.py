@@ -9,8 +9,7 @@ import typer
 from miniops import __version__
 from miniops.cli.app import app
 from miniops.cli.log import CommandLog, project_log
-from miniops.cli.output import describe
-from miniops.core.errors import MiniopsError
+from miniops.core.errors import MiniopsError, describe
 
 __all__ = ["app", "main"]
 
