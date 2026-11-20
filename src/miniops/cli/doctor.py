@@ -5,10 +5,9 @@ from typing import Literal
 import typer
 
 from miniops.adapters.stores import store_schema
-from miniops.cli.output import describe
 from miniops.cli.paths import current_directory
 from miniops.config.project import Project, find_project, find_root
-from miniops.core.errors import MiniopsError
+from miniops.core.errors import MiniopsError, describe
 from miniops.tools import find_tool, git_config, tool_version
 
 type _Status = Literal["ok", "warning", "problem"]
