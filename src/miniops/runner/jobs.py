@@ -44,7 +44,6 @@ def run(job_file: Path) -> Result:
     output.mkdir(parents=True)
     try:
         result = _train(job, base, output / MODEL_DIR)
-    # Model code that calls sys.exit() has failed as well.
     except (Exception, SystemExit) as error:
         logger.exception("The training failed")
         result = Result(environment=_environment(), failure=_failure(error))

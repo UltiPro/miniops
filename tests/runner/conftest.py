@@ -21,8 +21,7 @@ DATA = pl.DataFrame(
 
 @pytest.fixture(autouse=True)
 def separate_runs(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    # The runner changes sys.path, sys.modules and the logging of warnings, as it may in a
-    # process of its own.
+    # The runner changes sys.path, sys.modules and the logging of warnings of its process.
     monkeypatch.setattr(sys, "path", list(sys.path))
     yield
     for name in ("model", "steps"):

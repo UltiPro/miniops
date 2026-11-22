@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from miniops import tools
-from miniops.tools import find_tool, git_config, tool_version
+from miniops.core.errors import ToolError
+from miniops.tools import find_tool, git_config, run_tool, tool_version
 
 WINDOWS = sys.platform == "win32"
 
@@ -126,6 +127,40 @@ def test_a_program_that_does_not_answer_is_given_up_in_time(
     with pytest.raises(OSError, match="did not answer within 2 seconds"):
         tool_version(slow)
     assert time.monotonic() - start < 6
+
+
+def test_a_program_that_prints_itself_is_run_until_it_ends(
+    bin_dir: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    run_tool(program(bin_dir, "uv", stdout="Installed 30 packages"), "sync")
+
+    assert "Installed 30 packages" in capfd.readouterr().out
+
+
+def test_a_program_gets_the_environment_variables_it_is_given(
+    bin_dir: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    show = "echo %MINIOPS_TEST%" if WINDOWS else 'echo "$MINIOPS_TEST"'
+    tool = program(bin_dir, "show", then=show)
+
+    run_tool(tool, env={**os.environ, "MINIOPS_TEST": "given"})
+
+    assert "given" in capfd.readouterr().out
+
+
+def test_a_program_that_fails_is_a_tool_error(bin_dir: Path) -> None:
+    uv = program(bin_dir, "uv", code=2)
+
+    with pytest.raises(ToolError, match=r"^uv sync --project models exited with code 2\.$"):
+        run_tool(uv, "sync", "--project", "models")
+
+
+def test_a_program_that_cannot_be_started_says_so(bin_dir: Path) -> None:
+    broken = bin_dir / ("uv.exe" if WINDOWS else "uv")
+    broken.write_bytes(b"not a program")
+
+    with pytest.raises(OSError, match="does not run: "):
+        run_tool(broken, "sync")
 
 
 def test_a_value_of_the_git_configuration_is_read_as_utf_8(git: Path, tmp_path: Path) -> None:
