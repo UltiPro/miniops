@@ -1,0 +1,11 @@
+[project]
+name = "$name"
+# miniOPs numbers the versions of the model; uv only needs a value here.
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = ["miniops-ml[sklearn]==$miniops_version"]
+
+[tool.uv]
+# The model is code that miniOPs runs, not a package to build.
+package = false
+$sources

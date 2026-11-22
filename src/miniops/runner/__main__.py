@@ -14,8 +14,7 @@ def main() -> None:
 
     The exit code is 0 when the job succeeded and 1 otherwise.
     """
-    # What the runner prints is the log of the training. It goes to stdout, where a container
-    # logs, always in UTF-8, so that the host reads it the same way on every system.
+    # This output is the training log: on stdout, where a container logs, in UTF-8 everywhere.
     for stream in (sys.stdout, sys.stderr):
         if isinstance(stream, io.TextIOWrapper):
             stream.reconfigure(encoding="utf-8", errors="replace")

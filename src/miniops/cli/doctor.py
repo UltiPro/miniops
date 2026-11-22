@@ -7,6 +7,7 @@ import typer
 from miniops.adapters.stores import store_schema
 from miniops.cli.paths import current_directory
 from miniops.config.project import Project, find_project, find_root
+from miniops.core.environments import UV_INSTALL
 from miniops.core.errors import MiniopsError, describe
 from miniops.tools import find_tool, git_config, tool_version
 
@@ -45,7 +46,7 @@ def _uv() -> _Check:
         return _Check(
             "problem",
             "uv was not found. miniOPs needs it to create the environment of a model. Install it:",
-            ("https://docs.astral.sh/uv/getting-started/installation/",),
+            (UV_INSTALL,),
         )
     try:
         return _Check("ok", f"uv {tool_version(uv)}")

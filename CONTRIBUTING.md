@@ -37,7 +37,7 @@ The project is developed on the lowest supported Python version, pinned in `.pyt
 | Type check | `uv run mypy` |
 | Run every pre-commit check | `uv run pre-commit run --all-files` |
 
-Test coverage must stay at or above 85%. Public functions and classes need type hints and Google style docstrings. A docstring at the top of a file is optional: add one only when it says more than the file name does.
+One test creates a real model environment with uv, which needs the network; set `UV_OFFLINE=1` to skip it. Test coverage must stay at or above 85%. Public functions and classes need type hints and Google style docstrings. A docstring at the top of a file is optional: add one only when it says more than the file name does.
 
 Write comments the way you would explain something to a colleague: in plain, natural language and as briefly as possible. Comment only where the code does not speak for itself, and say why rather than repeating what the code does.
 

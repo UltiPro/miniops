@@ -51,3 +51,7 @@ class UntrustedTypesError(MiniopsError):
 
 class ProtocolError(MiniopsError):
     """A job or result file is damaged, or newer than this miniOPs."""
+
+
+class ToolError(MiniopsError):
+    """A program that miniOPs runs, like uv, is missing or failed."""
