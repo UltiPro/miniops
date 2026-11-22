@@ -24,7 +24,8 @@ def test_help_shows_usage() -> None:
 
 
 @pytest.mark.parametrize(
-    "command", [["init"], ["config"], ["config", "show"], ["doctor"], ["version"]]
+    "command",
+    [["init"], ["config"], ["config", "show"], ["doctor"], ["env"], ["env", "sync"], ["version"]],
 )
 def test_every_command_exists_and_has_help(command: list[str]) -> None:
     result = runner.invoke(app, [*command, "--help"])

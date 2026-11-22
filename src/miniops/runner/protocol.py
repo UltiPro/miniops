@@ -8,8 +8,6 @@ from miniops import __version__
 from miniops.core.entities import Signature, Task
 from miniops.core.errors import ProtocolError
 
-# A host reads the results of every older protocol too: a released model keeps the miniOPs
-# of its own lock file.
 PROTOCOL: Final = 1
 RESULT_FILE = "result.json"
 # A backslash would be part of a file name on Linux, where a job can run in a container.

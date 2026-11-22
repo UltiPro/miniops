@@ -6,6 +6,7 @@ import typer
 from miniops import __version__
 from miniops.cli.config import config_app
 from miniops.cli.doctor import doctor
+from miniops.cli.env import env_app
 from miniops.cli.init import init
 from miniops.cli.new import new
 from miniops.cli.registry import registry_app
@@ -19,6 +20,7 @@ app.command("init")(init)
 app.command("new")(new)
 app.command("doctor")(doctor)
 app.add_typer(config_app, name="config")
+app.add_typer(env_app, name="env")
 app.add_typer(registry_app, name="registry")
 
 
