@@ -45,6 +45,25 @@ jobs:
       - run: uv sync --locked
       - run: uv run pytest
 
+  lowest:
+    name: Test (lowest dependency versions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.12"
+      # The lowest versions that pyproject.toml allows, so that its lower bounds stay true.
+      # Without the project, uv leaves uv.lock alone. pytest and pytest-cov get the bounds of
+      # the dev group, or they would be their oldest releases.
+      - run: >-
+          uv run --no-project --isolated --resolution lowest-direct
+          --with-editable ".[sklearn]" --with "pytest>=9.2" --with "pytest-cov>=7.1"
+          pytest
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -56,13 +75,24 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - run: uv build
       # Install the wheel the way a user gets it from PyPI: no lock file, newest dependencies.
-      - run: uv run --isolated --no-project --with dist/*.whl miniops version
+      # A project and a model made with it outside the repository check the packaged templates,
+      # and model.py, which imports the flavor, checks the model environment.
+      - name: Use the built package
+        run: |
+          miniops() { uv run --isolated --no-project --with "$GITHUB_WORKSPACE"/dist/*.whl miniops "$@"; }
+          miniops version
+          mkdir "$RUNNER_TEMP/project"
+          cd "$RUNNER_TEMP/project"
+          miniops init
+          miniops new churn --flavor sklearn --task binary_classification
+          cat models/churn/.python-version
+          models/churn/.venv/bin/python models/churn/model.py
 
   all-checks:
     name: All checks
     # The branch ruleset requires only this job, so it stays valid when the test matrix changes.
     if: always()
-    needs: [lint, test, build]
+    needs: [lint, test, lowest, build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

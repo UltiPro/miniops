@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - On Windows, output redirected to a file or a pipe shows a character that its code page lacks as `?`, instead of stopping the command.
 - An unexpected error inside a project shows a short message with the path of the log instead of a traceback. Outside a project, where there is no log, the traceback is still shown.
 - pydantic is now a dependency. It validates the configuration files.
+- Continuous integration also runs the tests with the lowest dependency versions that `pyproject.toml` allows, and creates a project and a model with the built package.
 
 ## [0.1.0a1] - 2026-11-11
 
