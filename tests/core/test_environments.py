@@ -26,22 +26,23 @@ def a_model(directory: Path) -> Path:
 def test_the_environment_is_synced_by_uv_in_the_model_directory(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    names = ("VIRTUAL_ENV", "UV_PROJECT_ENVIRONMENT", "UV_PYTHON", "MINIOPS_UNRELATED")
     calls = []
 
     def run_tool(tool: Path, *arguments: str, env: dict[str, str]) -> None:
-        calls.append((tool, arguments, sorted(name for name in env if name.endswith("_ENV"))))
+        calls.append((tool, arguments, [name for name in names if name in env]))
         (Path(arguments[-1]) / ".venv").mkdir()
 
     monkeypatch.setattr(environments, "find_tool", lambda name: Path(f"/tools/{name}"))
     monkeypatch.setattr(environments, "run_tool", run_tool)
-    for name in ("VIRTUAL_ENV", "UV_PROJECT_ENVIRONMENT", "UV_PYTHON", "MINIOPS_KEPT_ENV"):
+    for name in names:
         monkeypatch.setenv(name, "set")
     directory = a_model(tmp_path / "churn")
 
     sync_environment(directory)
 
     assert calls == [
-        (Path("/tools/uv"), ("sync", "--project", str(directory)), ["MINIOPS_KEPT_ENV"])
+        (Path("/tools/uv"), ("sync", "--project", str(directory)), ["MINIOPS_UNRELATED"])
     ]
 
 

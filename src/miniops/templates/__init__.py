@@ -6,8 +6,7 @@ from importlib import resources
 from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 from string import Template
-from urllib.parse import urlparse
-from urllib.request import url2pathname
+from urllib.parse import unquote, urlparse
 
 from miniops import __version__
 from miniops.core.entities import Task
@@ -91,6 +90,9 @@ def _toml(value: str | bool) -> str:
 
 def _local_path(url: str) -> str:
     parts = urlparse(url)
+    path = unquote(parts.path)
+    # A Windows drive comes after a slash in a file URL: file:///D:/miniops.
+    if re.match(r"/[A-Za-z]:", path):
+        path = path[1:]
     # A host in a file URL is a network share, like file://server/share/miniops.
-    shared = parts.netloc not in ("", "localhost")
-    return Path(url2pathname(f"//{parts.netloc}{parts.path}" if shared else parts.path)).as_posix()
+    return path if parts.netloc in ("", "localhost") else f"//{parts.netloc}{path}"

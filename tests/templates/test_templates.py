@@ -138,10 +138,9 @@ class Installed:
 @pytest.mark.parametrize(
     ("direct_url", "source"),
     [
-        pytest.param(
+        (
             '{"url": "file:///D:/3.%20PROJEKTY/miniops", "dir_info": {"editable": true}}',
             {"path": "D:/3. PROJEKTY/miniops", "editable": True},
-            marks=pytest.mark.skipif(sys.platform != "win32", reason="a Windows path"),
         ),
         (
             '{"url": "file:///home/patryk/mini%24ops", "dir_info": {}}',
